@@ -131,7 +131,7 @@ namespace Test_task_Triplets_search
         /// <summary>
         /// Prepare for triplets computing. Сreating threads and distributing input text between them
         /// </summary>
-        private static string ComputeTriplets(string inputText)
+        private static string FindTriplets(string inputText)
         {
             tripletsCountMap = new Dictionary<string, int>();
             var inputLines = inputText.Split('\r');
@@ -140,6 +140,11 @@ namespace Test_task_Triplets_search
             var calcThreads = new Thread[threadNums];
             //split inputLanes into (threadNums) arrays for different threads 
             var ArraysForCalcThreads = inputLines.GroupBy(_ => counter++ / (inputLines.Length / threadNums + 1)).Select(v => v.ToArray()).ToArray();
+
+            //if we have fewer lines in the input file than the threads that the user specified,
+            //then we cannot split the lines into smaller ones, bacause we may lose some triplets
+            if (ArraysForCalcThreads.Length < threadNums)
+                threadNums = ArraysForCalcThreads.Length;
 
             for (int i = 0; i < threadNums; i++)
             {
@@ -226,9 +231,9 @@ namespace Test_task_Triplets_search
             sw.Restart();
             string result;
             if (useAllRegisters)
-                result = ComputeTriplets(fileInput.ReadToEnd().ToLower());
+                result = FindTriplets(fileInput.ReadToEnd().ToLower());
             else
-                result = ComputeTriplets(fileInput.ReadToEnd());
+                result = FindTriplets(fileInput.ReadToEnd());
             sw.Stop();
             fileInput.Close();
 
